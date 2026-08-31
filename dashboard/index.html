@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Star 助手</title>
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7;
+  --surface: #fcfcfb;
+  --ink-1: #0b0b0b;
+  --ink-2: #52514e;
+  --ink-muted: #898781;
+  --hairline: rgba(11, 11, 11, 0.10);
+  --grid-empty: #e7e6e0;
+  --baseline: #c3c2b7;
+  --s1: #3987e5;
+  --star: #e2b607;
+  --status-good: #0ca30c;
+  --status-warn: #fab219;
+  --status-crit: #d03b3b;
+  --wash: rgba(11, 11, 11, 0.045);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --page: #0d0d0d;
+    --surface: #1a1a19;
+    --ink-1: #ffffff;
+    --ink-2: #c3c2b7;
+    --ink-muted: #898781;
+    --hairline: rgba(255, 255, 255, 0.10);
+    --grid-empty: #2c2c2a;
+    --baseline: #383835;
+    --s1: #3987e5;
+    --star: #e2b607;
+    --wash: rgba(255, 255, 255, 0.06);
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--ink-1);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.wrap { max-width: 900px; margin: 0 auto; padding: 18px 22px 44px; }
+header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+header h1 { font-size: 20px; margin: 0; }
+header .sub { font-size: 12px; color: var(--ink-muted); }
+.badge {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 12px; color: var(--ink-2);
+  padding: 3px 10px; border: 1px solid var(--hairline); border-radius: 99px;
+  background: var(--surface);
+}
+.badge img { width: 18px; height: 18px; border-radius: 50%; display: block; }
+header .spacer { flex: 1; }
+button {
+  font: inherit; color: var(--ink-1);
+  background: var(--surface); border: 1px solid var(--hairline);
+  border-radius: 8px; padding: 6px 14px; cursor: pointer;
+}
+button:hover { background: var(--wash); }
+button.primary { background: var(--s1); border-color: transparent; color: #fff; font-weight: 600; }
+button.primary:hover { filter: brightness(1.08); }
+button.danger-ghost { color: var(--status-crit); }
+button:disabled { opacity: .5; cursor: default; }
+.card {
+  background: var(--surface); border: 1px solid var(--hairline);
+  border-radius: 10px; padding: 16px 18px; margin-bottom: 14px;
+  box-shadow: 0 1px 3px rgba(11, 11, 11, .05);
+}
+.card h2 {
+  font-size: 12px; font-weight: 600; letter-spacing: .06em;
+  color: var(--ink-muted); margin: 0 0 12px; text-transform: uppercase;
+}
+.row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+.row:last-child { margin-bottom: 0; }
+input[type="text"], input[type="password"] {
+  font: inherit; color: var(--ink-1); background: var(--page);
+  border: 1px solid var(--hairline); border-radius: 6px; padding: 6px 10px;
+}
+#owner-input { flex: 1; min-width: 260px; }
+.muted { color: var(--ink-muted); font-size: 12px; }
+.error { color: var(--status-crit); font-size: 13px; margin-top: 8px; white-space: pre-wrap; }
+.hidden { display: none !important; }
+
+/* target info */
+.target-info { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.target-info img { width: 40px; height: 40px; border-radius: 50%; }
+.target-info .who { font-weight: 600; }
+.target-info .who a { color: inherit; text-decoration: none; }
+.target-info .who a:hover { color: var(--s1); }
+.stat-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-left: auto; }
+.chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 10px; border: 1px solid var(--hairline);
+  border-radius: 99px; font-size: 12px; background: var(--wash);
+  font-variant-numeric: tabular-nums;
+}
+.chip b { font-weight: 700; }
+
+/* repo table */
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--hairline); }
+th { font-weight: 600; color: var(--ink-2); font-size: 12px; white-space: nowrap; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+tr:hover td { background: var(--wash); }
+.repo-name a { color: var(--s1); text-decoration: none; font-weight: 500; }
+.repo-name a:hover { text-decoration: underline; }
+.repo-desc { color: var(--ink-muted); font-size: 12px; max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tag {
+  display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 99px;
+  border: 1px solid var(--hairline); color: var(--ink-2); background: var(--wash);
+}
+td .star-btn {
+  border: none; background: none; padding: 3px 8px; cursor: pointer;
+  font: inherit; font-size: 12.5px; border-radius: 6px; white-space: nowrap;
+}
+td .star-btn.done { color: var(--star); font-weight: 600; }
+td .star-btn.todo { color: var(--ink-muted); }
+td .star-btn:hover { background: var(--wash); }
+td .star-btn.busy { opacity: .4; pointer-events: none; }
+
+/* action bar */
+.action-bar {
+  position: sticky; bottom: 0; z-index: 5;
+  background: var(--surface);
+  border-top: 1px solid var(--hairline);
+  margin: 14px -18px -16px; padding: 12px 18px;
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  border-radius: 0 0 10px 10px;
+}
+.progress { flex: 1; min-width: 160px; height: 8px; background: var(--grid-empty); border-radius: 99px; overflow: hidden; }
+.progress .fill { height: 100%; width: 0%; background: var(--s1); border-radius: 99px; transition: width .2s; }
+.progress-text { font-size: 12px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+
+/* login */
+.login-methods { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
+.device-box {
+  margin-top: 12px; padding: 12px 14px; border: 1px dashed var(--hairline);
+  border-radius: 8px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+}
+.device-box .code {
+  font-size: 22px; font-weight: 700; letter-spacing: .12em;
+  font-family: ui-monospace, Consolas, monospace;
+  padding: 4px 12px; background: var(--wash); border-radius: 6px;
+}
+label.inline { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-2); cursor: pointer; }
+summary.tips { cursor: pointer; font-size: 12px; color: var(--ink-muted); margin-top: 10px; }
+.tips-body { font-size: 12px; color: var(--ink-2); margin-top: 8px; line-height: 1.7; }
+.spin {
+  display: inline-block; width: 13px; height: 13px; vertical-align: -2px;
+  border: 2px solid var(--baseline); border-top-color: transparent; border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Star 助手</h1>
+    <span class="sub">输入别人的主页 → 一键 star 全部仓库</span>
+    <span class="spacer"></span>
+    <span id="account-badge" class="badge hidden">
+      <img id="me-avatar" alt="">
+      <span id="me-login"></span>
+      <button id="btn-logout" style="border:none;background:none;padding:0 2px;cursor:pointer;color:var(--status-crit);font-size:12px;">退出</button>
+    </span>
+  </header>
+
+  <!-- login -->
+  <div id="login-card" class="card">
+    <h2>登录 GitHub</h2>
+    <div class="login-methods">
+      <button id="btn-device" class="primary">GitHub 设备配对</button>
+      <button id="btn-gh">导入本机 gh CLI</button>
+    </div>
+    <details>
+      <summary class="tips">或者粘贴 Personal Access Token</summary>
+      <div class="tips-body" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <input id="pat-input" type="password" placeholder="ghp_… （勾选 star 权限即可）" style="flex:1;min-width:240px;">
+        <button id="btn-pat">登录</button>
+      </div>
+    </details>
+    <div id="device-box" class="device-box hidden">
+      <span>在浏览器输入配对码：</span>
+      <span class="code" id="device-code"></span>
+      <button id="btn-open-verify">打开 github.com/login/device</button>
+      <span class="muted" id="device-status">等待授权…</span>
+    </div>
+    <div id="login-error" class="error"></div>
+  </div>
+
+  <!-- main -->
+  <div id="main-area" class="hidden">
+    <div class="card">
+      <h2>目标用户</h2>
+      <div class="row">
+        <input id="owner-input" type="text"
+               placeholder="例如 https://github.com/cloud666666666?tab=repositories 或直接输入用户名">
+        <button id="btn-fetch" class="primary">获取仓库</button>
+      </div>
+      <div class="row hidden" id="target-row">
+        <div class="target-info">
+          <img id="target-avatar" alt="">
+          <span class="who"><a id="target-link" target="_blank"></a></span>
+          <div class="stat-chips">
+            <span class="chip">仓库 <b id="t-total">0</b></span>
+            <span class="chip">其中 fork <b id="t-forks">0</b></span>
+            <span class="chip" style="color:var(--status-good)">已 star <b id="t-already">0</b></span>
+            <span class="chip" style="color:var(--star)">待 star <b id="t-todo">0</b></span>
+          </div>
+        </div>
+      </div>
+      <div class="row hidden" id="option-row">
+        <label class="inline"><input type="checkbox" id="opt-forks" checked> 包含 fork 仓库</label>
+        <label class="inline"><input type="checkbox" id="opt-skip-starred" checked> 跳过已 star</label>
+        <span style="flex:1"></span>
+        <button id="btn-all">全选</button>
+        <button id="btn-none">全不选</button>
+      </div>
+      <div id="fetch-error" class="error"></div>
+    </div>
+
+    <div id="repos-card" class="card hidden">
+      <h2>仓库列表</h2>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:30px;"><input type="checkbox" id="check-head"></th>
+              <th>仓库</th>
+              <th class="num">Stars</th>
+              <th>语言</th>
+              <th style="width:90px;">状态</th>
+            </tr>
+          </thead>
+          <tbody id="repos-body"></tbody>
+        </table>
+      </div>
+      <div class="action-bar">
+        <button id="btn-run" class="primary">一键 Star 选中 (<span id="run-count">0</span>)</button>
+        <div class="progress"><div class="fill" id="progress-fill"></div></div>
+        <span class="progress-text" id="progress-text"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+let REPOS = [];          // [{full_name,name,description,fork,stars,language,url,starred}]
+let OWNER_INFO = null;
+let RUNNING = false;
+
+function esc(s) {
+  return String(s ?? "").replace(/[&<>"']/g, c => (
+    {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+}
+function fmt(n) { return Number(n).toLocaleString("en-US"); }
+
+async function api(path, opts) {
+  const resp = await fetch(path, opts);
+  let data = {};
+  try { data = await resp.json(); } catch (e) {}
+  if (!resp.ok) {
+    const err = new Error(data.error || ("HTTP " + resp.status));
+    err.authRequired = !!data.auth_required;
+    throw err;
+  }
+  return data;
+}
+
+/* ---------------- account ---------------- */
+async function refreshMe() {
+  const me = await api("/api/me");
+  if (me.logged_in) {
+    $("login-card").classList.add("hidden");
+    $("main-area").classList.remove("hidden");
+    $("account-badge").classList.remove("hidden");
+    $("me-avatar").src = me.avatar;
+    $("me-login").textContent = me.login;
+  } else {
+    showLogin();
+  }
+}
+function showLogin() {
+  $("login-card").classList.remove("hidden");
+  $("main-area").classList.add("hidden");
+  $("account-badge").classList.add("hidden");
+}
+
+$("btn-logout").onclick = async () => {
+  await api("/api/auth/logout", { method: "POST", body: "{}" });
+  REPOS = []; OWNER_INFO = null;
+  $("repos-card").classList.add("hidden");
+  $("target-row").classList.add("hidden");
+  $("option-row").classList.add("hidden");
+  $("owner-input").value = "";
+  showLogin();
+};
+
+/* ---------------- login flows ---------------- */
+function loginError(msg) { $("login-error").textContent = msg || ""; }
+
+$("btn-device").onclick = async () => {
+  loginError("");
+  try {
+    const s = await api("/api/auth/start", { method: "POST", body: "{}" });
+    $("device-box").classList.remove("hidden");
+    $("device-code").textContent = s.user_code;
+    $("device-status").textContent = "等待授权…";
+    $("btn-open-verify").onclick = () => window.open(s.verify_url, "_blank");
+    const timer = setInterval(async () => {
+      try {
+        const r = await api("/api/auth/poll", {
+          method: "POST", body: JSON.stringify({ device_code: s.device_code }) });
+        if (r.status === "ok") {
+          clearInterval(timer);
+          $("device-status").textContent = "登录成功";
+          setTimeout(refreshMe, 400);
+        }
+      } catch (e) {
+        clearInterval(timer);
+        $("device-status").textContent = "";
+        loginError(e.message);
+      }
+    }, 4000);
+  } catch (e) { loginError(e.message); }
+};
+
+$("btn-gh").onclick = async () => {
+  loginError("");
+  try {
+    await api("/api/auth/import_gh", { method: "POST", body: "{}" });
+    refreshMe();
+  } catch (e) { loginError(e.message); }
+};
+
+$("btn-pat").onclick = async () => {
+  loginError("");
+  try {
+    await api("/api/auth/paste", {
+      method: "POST", body: JSON.stringify({ token: $("pat-input").value }) });
+    $("pat-input").value = "";
+    refreshMe();
+  } catch (e) { loginError(e.message); }
+};
+
+/* ---------------- fetch target ---------------- */
+function fetchError(msg) { $("fetch-error").textContent = msg || ""; }
+
+function updateCounts() {
+  const forks = REPOS.filter(r => r.fork).length;
+  const already = REPOS.filter(r => r.starred).length;
+  const skipStarred = $("opt-skip-starred").checked;
+  const todo = REPOS.filter(r => !r.starred).length;
+  $("t-total").textContent = fmt(REPOS.length);
+  $("t-forks").textContent = fmt(forks);
+  $("t-already").textContent = fmt(already);
+  $("t-todo").textContent = fmt(skipStarred ? todo : REPOS.length);
+  updateRunCount();
+}
+
+function visibleRepos() {
+  const includeForks = $("opt-forks").checked;
+  return REPOS.filter(r => includeForks || !r.fork);
+}
+
+function selectedRepos() {
+  const skipStarred = $("opt-skip-starred").checked;
+  return visibleRepos().filter(r => r.checked && (!skipStarred || !r.starred));
+}
+
+function updateRunCount() {
+  $("run-count").textContent = selectedRepos().length;
+}
+
+function renderRepos() {
+  const rows = visibleRepos();
+  $("repos-body").innerHTML = rows.map(r => `
+    <tr data-repo="${esc(r.full_name)}">
+      <td><input type="checkbox" class="repo-check" ${r.checked ? "checked" : ""}></td>
+      <td class="repo-name">
+        <a href="${esc(r.url)}" target="_blank">${esc(r.name)}</a>
+        ${r.fork ? '<span class="tag">fork</span>' : ""}
+        ${r.archived ? '<span class="tag">archived</span>' : ""}
+        <div class="repo-desc">${esc(r.description)}</div>
+      </td>
+      <td class="num">${fmt(r.stars)}</td>
+      <td class="muted">${esc(r.language)}</td>
+      <td><button class="star-btn ${r.starred ? "done" : "todo"}">
+        ${r.starred ? "★ 已star" : "☆ 未star"}
+      </button></td>
+    </tr>`).join("");
+
+  document.querySelectorAll("#repos-body tr").forEach(tr => {
+    const repo = REPOS.find(x => x.full_name === tr.dataset.repo);
+    tr.querySelector(".repo-check").onchange = (e) => {
+      repo.checked = e.target.checked; updateRunCount();
+    };
+    tr.querySelector(".star-btn").onclick = async (e) => {
+      if (RUNNING) return;
+      const btn = e.currentTarget;
+      btn.classList.add("busy");
+      try {
+        await api("/api/star", {
+          method: "POST",
+          body: JSON.stringify({ repo: repo.full_name, action: repo.starred ? "unstar" : "star" }),
+        });
+        repo.starred = !repo.starred;
+        renderRepos(); updateCounts();
+      } catch (err) { fetchError(err.message); }
+      btn.classList.remove("busy");
+    };
+  });
+  $("check-head").checked = rows.length > 0 && rows.every(r => r.checked);
+}
+
+$("btn-fetch").onclick = async () => {
+  fetchError("");
+  const owner = $("owner-input").value.trim();
+  if (!owner) { fetchError("请输入主页地址或用户名"); return; }
+  const btn = $("btn-fetch");
+  btn.disabled = true; btn.innerHTML = '<span class="spin"></span> 获取中…';
+  try {
+    const includeForks = $("opt-forks").checked;
+    const q = new URLSearchParams({ owner, forks: includeForks ? "1" : "0" });
+    const data = await api("/api/target?" + q.toString());
+    OWNER_INFO = data;
+    REPOS = data.repos.map(r => ({ ...r, checked: !r.starred }));
+    $("target-row").classList.remove("hidden");
+    $("option-row").classList.remove("hidden");
+    $("repos-card").classList.remove("hidden");
+    $("target-avatar").src = data.avatar;
+    $("target-link").textContent = data.owner;
+    $("target-link").href = data.profile_url;
+    renderRepos(); updateCounts();
+    $("progress-fill").style.width = "0%";
+    $("progress-text").textContent = "";
+  } catch (e) {
+    fetchError(e.message);
+    if (e.authRequired) showLogin();
+  }
+  btn.disabled = false; btn.textContent = "获取仓库";
+};
+$("owner-input").addEventListener("keydown", (e) => { if (e.key === "Enter") $("btn-fetch").click(); });
+
+$("opt-forks").onchange = () => { renderRepos(); updateCounts(); };
+$("opt-skip-starred").onchange = () => { updateCounts(); updateRunCount(); };
+$("btn-all").onclick = () => { visibleRepos().forEach(r => r.checked = true); renderRepos(); updateRunCount(); };
+$("btn-none").onclick = () => { REPOS.forEach(r => r.checked = false); renderRepos(); updateRunCount(); };
+$("check-head").onchange = (e) => {
+  visibleRepos().forEach(r => r.checked = e.target.checked);
+  renderRepos(); updateRunCount();
+};
+
+/* ---------------- one-click star ---------------- */
+async function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+$("btn-run").onclick = async () => {
+  if (RUNNING) return;
+  const targets = selectedRepos();
+  if (!targets.length) { fetchError("没有勾选任何待 star 的仓库"); return; }
+  fetchError("");
+  RUNNING = true;
+  const btn = $("btn-run");
+  btn.disabled = true;
+  let ok = 0, fail = 0;
+  for (let i = 0; i < targets.length; i++) {
+    const r = targets[i];
+    $("progress-fill").style.width = ((i / targets.length) * 100).toFixed(1) + "%";
+    $("progress-text").textContent = `${i + 1}/${targets.length} ${r.full_name}`;
+    const tr = document.querySelector(`tr[data-repo="${CSS.escape(r.full_name)}"] .star-btn`);
+    if (tr) tr.classList.add("busy");
+    try {
+      await api("/api/star", {
+        method: "POST",
+        body: JSON.stringify({ repo: r.full_name, action: "star" }),
+      });
+      r.starred = true; ok++;
+    } catch (e) {
+      fail++;
+      console.error(r.full_name, e.message);
+    }
+    if (tr) tr.classList.remove("busy");
+    await sleep(150); // be gentle with the API
+  }
+  $("progress-fill").style.width = "100%";
+  $("progress-text").textContent = `完成：成功 ${ok}` + (fail ? `，失败 ${fail}` : "");
+  btn.disabled = false;
+  RUNNING = false;
+  renderRepos(); updateCounts();
+};
+
+/* ---------------- boot ---------------- */
+refreshMe().catch(e => loginError(e.message));
+</script>
+</body>
+</html>
