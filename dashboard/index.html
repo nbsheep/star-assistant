@@ -47,7 +47,7 @@ body {
   font-size: 14px;
   line-height: 1.5;
 }
-.wrap { max-width: 900px; margin: 0 auto; padding: 18px 22px 44px; }
+.wrap { max-width: 980px; margin: 0 auto; padding: 18px 22px 44px; }
 header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
 header h1 { font-size: 20px; margin: 0; }
 header .sub { font-size: 12px; color: var(--ink-muted); }
@@ -67,7 +67,8 @@ button {
 button:hover { background: var(--wash); }
 button.primary { background: var(--s1); border-color: transparent; color: #fff; font-weight: 600; }
 button.primary:hover { filter: brightness(1.08); }
-button.danger-ghost { color: var(--status-crit); }
+button.danger { background: var(--status-crit); border-color: transparent; color: #fff; font-weight: 600; }
+button.danger:hover { filter: brightness(1.08); }
 button:disabled { opacity: .5; cursor: default; }
 .card {
   background: var(--surface); border: 1px solid var(--hairline);
@@ -80,7 +81,7 @@ button:disabled { opacity: .5; cursor: default; }
 }
 .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
 .row:last-child { margin-bottom: 0; }
-input[type="text"], input[type="password"] {
+input[type="text"], input[type="password"], select {
   font: inherit; color: var(--ink-1); background: var(--page);
   border: 1px solid var(--hairline); border-radius: 6px; padding: 6px 10px;
 }
@@ -89,20 +90,22 @@ input[type="text"], input[type="password"] {
 .error { color: var(--status-crit); font-size: 13px; margin-top: 8px; white-space: pre-wrap; }
 .hidden { display: none !important; }
 
+/* tiles */
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin: 4px 0 14px; }
+.tile { background: var(--page); border: 1px solid var(--hairline); border-radius: 10px; padding: 10px 14px; }
+.tile .num { font-size: 24px; font-weight: 700; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.tile .cap { font-size: 12px; color: var(--ink-2); margin-top: 1px; }
+.tile.hl .num { color: var(--star); }
+.tile.ok .num { color: var(--status-good); }
+
 /* target info */
-.target-info { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.target-info img { width: 40px; height: 40px; border-radius: 50%; }
+.target-info { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 4px; }
+.target-info img { width: 44px; height: 44px; border-radius: 50%; }
 .target-info .who { font-weight: 600; }
 .target-info .who a { color: inherit; text-decoration: none; }
 .target-info .who a:hover { color: var(--s1); }
-.stat-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-left: auto; }
-.chip {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 3px 10px; border: 1px solid var(--hairline);
-  border-radius: 99px; font-size: 12px; background: var(--wash);
-  font-variant-numeric: tabular-nums;
-}
-.chip b { font-weight: 700; }
+.target-info .meta { font-size: 12px; color: var(--ink-2); }
+.target-info .bio { font-size: 12.5px; color: var(--ink-2); width: 100%; }
 
 /* repo table */
 table { border-collapse: collapse; width: 100%; font-size: 13px; }
@@ -125,6 +128,13 @@ td .star-btn.done { color: var(--star); font-weight: 600; }
 td .star-btn.todo { color: var(--ink-muted); }
 td .star-btn:hover { background: var(--wash); }
 td .star-btn.busy { opacity: .4; pointer-events: none; }
+.empty-tip { color: var(--ink-muted); font-size: 13px; text-align: center; padding: 18px 0; }
+
+/* toolbar */
+.toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+#search-input { width: 200px; }
+.toolbar .spacer { flex: 1; }
+.btn-mini { padding: 4px 10px; font-size: 12px; border-radius: 6px; }
 
 /* action bar */
 .action-bar {
@@ -135,8 +145,9 @@ td .star-btn.busy { opacity: .4; pointer-events: none; }
   display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
   border-radius: 0 0 10px 10px;
 }
-.progress { flex: 1; min-width: 160px; height: 8px; background: var(--grid-empty); border-radius: 99px; overflow: hidden; }
+.progress { flex: 1; min-width: 140px; height: 8px; background: var(--grid-empty); border-radius: 99px; overflow: hidden; }
 .progress .fill { height: 100%; width: 0%; background: var(--s1); border-radius: 99px; transition: width .2s; }
+.progress .fill.red { background: var(--status-crit); }
 .progress-text { font-size: 12px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
 
 /* login */
@@ -153,6 +164,18 @@ td .star-btn.busy { opacity: .4; pointer-events: none; }
 label.inline { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-2); cursor: pointer; }
 summary.tips { cursor: pointer; font-size: 12px; color: var(--ink-muted); margin-top: 10px; }
 .tips-body { font-size: 12px; color: var(--ink-2); margin-top: 8px; line-height: 1.7; }
+
+/* bottom two-column */
+.bottom-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; align-items: start; }
+.bottom-grid .card { margin-bottom: 0; }
+@media (max-width: 860px) { .bottom-grid { grid-template-columns: minmax(0, 1fr); } .bottom-grid .card { margin-bottom: 14px; } }
+.feed-item { padding: 7px 2px; border-bottom: 1px solid var(--hairline); font-size: 13px; }
+.feed-item:last-child { border-bottom: none; }
+.feed-item .top { display: flex; align-items: baseline; gap: 8px; }
+.feed-item a { color: var(--s1); text-decoration: none; font-weight: 500; }
+.feed-item a:hover { text-decoration: underline; }
+.feed-item .when { margin-left: auto; font-size: 11.5px; color: var(--ink-muted); white-space: nowrap; }
+.feed-item .desc { font-size: 12px; color: var(--ink-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .spin {
   display: inline-block; width: 13px; height: 13px; vertical-align: -2px;
   border: 2px solid var(--baseline); border-top-color: transparent; border-radius: 50%;
@@ -165,7 +188,7 @@ summary.tips { cursor: pointer; font-size: 12px; color: var(--ink-muted); margin
 <div class="wrap">
   <header>
     <h1>Star 助手</h1>
-    <span class="sub">输入别人的主页 → 一键 star 全部仓库</span>
+    <span class="sub">输入别人的主页 → 一键 star / 取消 star 全部仓库</span>
     <span class="spacer"></span>
     <span id="account-badge" class="badge hidden">
       <img id="me-avatar" alt="">
@@ -206,30 +229,44 @@ summary.tips { cursor: pointer; font-size: 12px; color: var(--ink-muted); margin
                placeholder="例如 https://github.com/nbsheep?tab=repositories 或直接输入用户名">
         <button id="btn-fetch" class="primary">获取仓库</button>
       </div>
-      <div class="row hidden" id="target-row">
+      <div id="target-detail" class="hidden">
         <div class="target-info">
           <img id="target-avatar" alt="">
-          <span class="who"><a id="target-link" target="_blank"></a></span>
-          <div class="stat-chips">
-            <span class="chip">仓库 <b id="t-total">0</b></span>
-            <span class="chip">其中 fork <b id="t-forks">0</b></span>
-            <span class="chip" style="color:var(--status-good)">已 star <b id="t-already">0</b></span>
-            <span class="chip" style="color:var(--star)">待 star <b id="t-todo">0</b></span>
+          <div>
+            <div class="who"><a id="target-link" target="_blank"></a></div>
+            <div class="meta"><span id="t-followers"></span> · <span id="t-created"></span></div>
           </div>
         </div>
-      </div>
-      <div class="row hidden" id="option-row">
-        <label class="inline"><input type="checkbox" id="opt-forks" checked> 包含 fork 仓库</label>
-        <label class="inline"><input type="checkbox" id="opt-skip-starred" checked> 跳过已 star</label>
-        <span style="flex:1"></span>
-        <button id="btn-all">全选</button>
-        <button id="btn-none">全不选</button>
+        <div class="bio muted" id="t-bio"></div>
+        <div class="tiles">
+          <div class="tile"><div class="num" id="tile-total">0</div><div class="cap">公开仓库</div></div>
+          <div class="tile"><div class="num" id="tile-stars">0</div><div class="cap">总获星</div></div>
+          <div class="tile"><div class="num" id="tile-forks">0</div><div class="cap">其中 fork</div></div>
+          <div class="tile ok"><div class="num" id="tile-already">0</div><div class="cap">我已 star</div></div>
+          <div class="tile hl"><div class="num" id="tile-todo">0</div><div class="cap">待 star</div></div>
+        </div>
+        <div class="row">
+          <label class="inline"><input type="checkbox" id="opt-forks" checked> 包含 fork 仓库</label>
+          <label class="inline"><input type="checkbox" id="opt-skip-starred" checked> Star 时跳过已 star</label>
+        </div>
       </div>
       <div id="fetch-error" class="error"></div>
     </div>
 
     <div id="repos-card" class="card hidden">
       <h2>仓库列表</h2>
+      <div class="toolbar">
+        <input id="search-input" type="text" placeholder="🔍 搜索名称 / 描述">
+        <select id="sort-select">
+          <option value="default">最近更新</option>
+          <option value="stars">星数最多</option>
+          <option value="name">名称 A-Z</option>
+        </select>
+        <span class="spacer"></span>
+        <button class="btn-mini" id="btn-all">全选</button>
+        <button class="btn-mini" id="btn-starred">勾选已star</button>
+        <button class="btn-mini" id="btn-none">全不选</button>
+      </div>
       <div style="overflow-x:auto;">
         <table>
           <thead>
@@ -245,9 +282,21 @@ summary.tips { cursor: pointer; font-size: 12px; color: var(--ink-muted); margin
         </table>
       </div>
       <div class="action-bar">
-        <button id="btn-run" class="primary">一键 Star 选中 (<span id="run-count">0</span>)</button>
+        <button id="btn-run" class="primary">⭐ 一键 Star (<span id="run-count">0</span>)</button>
+        <button id="btn-unrun" class="danger">✗ 一键取消 Star (<span id="unrun-count">0</span>)</button>
         <div class="progress"><div class="fill" id="progress-fill"></div></div>
         <span class="progress-text" id="progress-text"></span>
+      </div>
+    </div>
+
+    <div class="bottom-grid">
+      <div class="card">
+        <h2>我最近的 Star 动态 <button class="btn-mini" id="btn-refresh-stars" style="float:right;">刷新</button></h2>
+        <div id="recent-stars"><div class="empty-tip">加载中…</div></div>
+      </div>
+      <div class="card">
+        <h2>批量操作历史</h2>
+        <div id="history-list"><div class="empty-tip">还没有批量操作记录</div></div>
       </div>
     </div>
   </div>
@@ -256,15 +305,24 @@ summary.tips { cursor: pointer; font-size: 12px; color: var(--ink-muted); margin
 <script>
 "use strict";
 const $ = (id) => document.getElementById(id);
-let REPOS = [];          // [{full_name,name,description,fork,stars,language,url,starred}]
-let OWNER_INFO = null;
+let REPOS = [];
 let RUNNING = false;
+let FILTER = { q: "", sort: "default" };
 
 function esc(s) {
   return String(s ?? "").replace(/[&<>"']/g, c => (
     {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
 }
 function fmt(n) { return Number(n).toLocaleString("en-US"); }
+function relTime(iso) {
+  if (!iso) return "";
+  const sec = (Date.now() - new Date(iso).getTime()) / 1000;
+  if (sec < 60) return "刚刚";
+  if (sec < 3600) return Math.floor(sec / 60) + " 分钟前";
+  if (sec < 86400) return Math.floor(sec / 3600) + " 小时前";
+  if (sec < 86400 * 30) return Math.floor(sec / 86400) + " 天前";
+  return new Date(iso).toLocaleDateString("zh-CN");
+}
 
 async function api(path, opts) {
   const resp = await fetch(path, opts);
@@ -287,6 +345,8 @@ async function refreshMe() {
     $("account-badge").classList.remove("hidden");
     $("me-avatar").src = me.avatar;
     $("me-login").textContent = me.login;
+    loadRecentStars();
+    loadHistory();
   } else {
     showLogin();
   }
@@ -299,11 +359,11 @@ function showLogin() {
 
 $("btn-logout").onclick = async () => {
   await api("/api/auth/logout", { method: "POST", body: "{}" });
-  REPOS = []; OWNER_INFO = null;
+  REPOS = [];
   $("repos-card").classList.add("hidden");
-  $("target-row").classList.add("hidden");
-  $("option-row").classList.add("hidden");
+  $("target-detail").classList.add("hidden");
   $("owner-input").value = "";
+  $("search-input").value = "";
   showLogin();
 };
 
@@ -357,34 +417,44 @@ $("btn-pat").onclick = async () => {
 /* ---------------- fetch target ---------------- */
 function fetchError(msg) { $("fetch-error").textContent = msg || ""; }
 
+function visibleRepos() {
+  let rows = REPOS;
+  if ($("opt-forks").checked === false) rows = rows.filter(r => !r.fork);
+  const q = FILTER.q.trim().toLowerCase();
+  if (q) rows = rows.filter(r =>
+    r.full_name.toLowerCase().includes(q) || r.description.toLowerCase().includes(q));
+  if (FILTER.sort === "stars") rows = [...rows].sort((a, b) => b.stars - a.stars);
+  else if (FILTER.sort === "name") rows = [...rows].sort((a, b) => a.name.localeCompare(b.name));
+  return rows;
+}
+
+function checkedVisible() { return visibleRepos().filter(r => r.checked); }
+function starTargets() {
+  const skipStarred = $("opt-skip-starred").checked;
+  return checkedVisible().filter(r => !skipStarred || !r.starred);
+}
+function unstarTargets() { return checkedVisible().filter(r => r.starred); }
+
 function updateCounts() {
   const forks = REPOS.filter(r => r.fork).length;
   const already = REPOS.filter(r => r.starred).length;
-  const skipStarred = $("opt-skip-starred").checked;
-  const todo = REPOS.filter(r => !r.starred).length;
-  $("t-total").textContent = fmt(REPOS.length);
-  $("t-forks").textContent = fmt(forks);
-  $("t-already").textContent = fmt(already);
-  $("t-todo").textContent = fmt(skipStarred ? todo : REPOS.length);
-  updateRunCount();
-}
-
-function visibleRepos() {
-  const includeForks = $("opt-forks").checked;
-  return REPOS.filter(r => includeForks || !r.fork);
-}
-
-function selectedRepos() {
-  const skipStarred = $("opt-skip-starred").checked;
-  return visibleRepos().filter(r => r.checked && (!skipStarred || !r.starred));
-}
-
-function updateRunCount() {
-  $("run-count").textContent = selectedRepos().length;
+  $("tile-total").textContent = fmt(REPOS.length);
+  $("tile-stars").textContent = fmt(REPOS.reduce((s, r) => s + r.stars, 0));
+  $("tile-forks").textContent = fmt(forks);
+  $("tile-already").textContent = fmt(already);
+  $("tile-todo").textContent = fmt(REPOS.filter(r => !r.starred).length);
+  $("run-count").textContent = starTargets().length;
+  $("unrun-count").textContent = unstarTargets().length;
+  const rows = visibleRepos();
+  $("check-head").checked = rows.length > 0 && rows.every(r => r.checked);
 }
 
 function renderRepos() {
   const rows = visibleRepos();
+  if (!rows.length) {
+    $("repos-body").innerHTML = '<tr><td colspan="5"><div class="empty-tip">没有匹配的仓库</div></td></tr>';
+    return;
+  }
   $("repos-body").innerHTML = rows.map(r => `
     <tr data-repo="${esc(r.full_name)}">
       <td><input type="checkbox" class="repo-check" ${r.checked ? "checked" : ""}></td>
@@ -403,8 +473,9 @@ function renderRepos() {
 
   document.querySelectorAll("#repos-body tr").forEach(tr => {
     const repo = REPOS.find(x => x.full_name === tr.dataset.repo);
+    if (!repo) return;
     tr.querySelector(".repo-check").onchange = (e) => {
-      repo.checked = e.target.checked; updateRunCount();
+      repo.checked = e.target.checked; updateCounts();
     };
     tr.querySelector(".star-btn").onclick = async (e) => {
       if (RUNNING) return;
@@ -421,7 +492,7 @@ function renderRepos() {
       btn.classList.remove("busy");
     };
   });
-  $("check-head").checked = rows.length > 0 && rows.every(r => r.checked);
+  updateCounts();
 }
 
 $("btn-fetch").onclick = async () => {
@@ -434,17 +505,20 @@ $("btn-fetch").onclick = async () => {
     const includeForks = $("opt-forks").checked;
     const q = new URLSearchParams({ owner, forks: includeForks ? "1" : "0" });
     const data = await api("/api/target?" + q.toString());
-    OWNER_INFO = data;
     REPOS = data.repos.map(r => ({ ...r, checked: !r.starred }));
-    $("target-row").classList.remove("hidden");
-    $("option-row").classList.remove("hidden");
+    $("target-detail").classList.remove("hidden");
     $("repos-card").classList.remove("hidden");
     $("target-avatar").src = data.avatar;
     $("target-link").textContent = data.owner;
     $("target-link").href = data.profile_url;
-    renderRepos(); updateCounts();
+    $("t-followers").textContent = fmt(data.followers) + " 粉丝";
+    $("t-created").textContent = data.created_at ? data.created_at.slice(0, 4) + " 年加入" : "";
+    $("t-bio").textContent = data.bio || "";
+    $("t-bio").classList.toggle("hidden", !data.bio);
     $("progress-fill").style.width = "0%";
+    $("progress-fill").classList.remove("red");
     $("progress-text").textContent = "";
+    renderRepos();
   } catch (e) {
     fetchError(e.message);
     if (e.authRequired) showLogin();
@@ -453,39 +527,44 @@ $("btn-fetch").onclick = async () => {
 };
 $("owner-input").addEventListener("keydown", (e) => { if (e.key === "Enter") $("btn-fetch").click(); });
 
-$("opt-forks").onchange = () => { renderRepos(); updateCounts(); };
-$("opt-skip-starred").onchange = () => { updateCounts(); updateRunCount(); };
-$("btn-all").onclick = () => { visibleRepos().forEach(r => r.checked = true); renderRepos(); updateRunCount(); };
-$("btn-none").onclick = () => { REPOS.forEach(r => r.checked = false); renderRepos(); updateRunCount(); };
+$("opt-forks").onchange = () => { renderRepos(); };
+$("opt-skip-starred").onchange = () => { updateCounts(); };
+$("search-input").oninput = (e) => { FILTER.q = e.target.value; renderRepos(); };
+$("sort-select").onchange = (e) => { FILTER.sort = e.target.value; renderRepos(); };
+$("btn-all").onclick = () => { visibleRepos().forEach(r => r.checked = true); renderRepos(); };
+$("btn-none").onclick = () => { REPOS.forEach(r => r.checked = false); renderRepos(); };
+$("btn-starred").onclick = () => { visibleRepos().forEach(r => r.checked = r.starred); renderRepos(); };
 $("check-head").onchange = (e) => {
   visibleRepos().forEach(r => r.checked = e.target.checked);
-  renderRepos(); updateRunCount();
+  renderRepos();
 };
 
-/* ---------------- one-click star ---------------- */
+/* ---------------- batch star / unstar ---------------- */
 async function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-$("btn-run").onclick = async () => {
+async function runBatch(action) {
   if (RUNNING) return;
-  const targets = selectedRepos();
-  if (!targets.length) { fetchError("没有勾选任何待 star 的仓库"); return; }
+  const targets = action === "star" ? starTargets() : unstarTargets();
+  if (!targets.length) { fetchError(action === "star" ? "没有勾选任何待 star 的仓库" : "勾选的仓库里没有已 star 的"); return; }
   fetchError("");
   RUNNING = true;
-  const btn = $("btn-run");
-  btn.disabled = true;
+  $("btn-run").disabled = true;
+  $("btn-unrun").disabled = true;
+  const fill = $("progress-fill");
+  fill.classList.toggle("red", action === "unstar");
   let ok = 0, fail = 0;
   for (let i = 0; i < targets.length; i++) {
     const r = targets[i];
-    $("progress-fill").style.width = ((i / targets.length) * 100).toFixed(1) + "%";
+    fill.style.width = ((i / targets.length) * 100).toFixed(1) + "%";
     $("progress-text").textContent = `${i + 1}/${targets.length} ${r.full_name}`;
     const tr = document.querySelector(`tr[data-repo="${CSS.escape(r.full_name)}"] .star-btn`);
     if (tr) tr.classList.add("busy");
     try {
       await api("/api/star", {
         method: "POST",
-        body: JSON.stringify({ repo: r.full_name, action: "star" }),
+        body: JSON.stringify({ repo: r.full_name, action }),
       });
-      r.starred = true; ok++;
+      r.starred = action === "star"; ok++;
     } catch (e) {
       fail++;
       console.error(r.full_name, e.message);
@@ -493,12 +572,65 @@ $("btn-run").onclick = async () => {
     if (tr) tr.classList.remove("busy");
     await sleep(150); // be gentle with the API
   }
-  $("progress-fill").style.width = "100%";
-  $("progress-text").textContent = `完成：成功 ${ok}` + (fail ? `，失败 ${fail}` : "");
-  btn.disabled = false;
+  fill.style.width = "100%";
+  $("progress-text").textContent =
+    (action === "star" ? "Star 完成" : "取消完成") + `：成功 ${ok}` + (fail ? `，失败 ${fail}` : "");
   RUNNING = false;
-  renderRepos(); updateCounts();
-};
+  $("btn-run").disabled = false;
+  $("btn-unrun").disabled = false;
+  renderRepos();
+  try {
+    await api("/api/history", {
+      method: "POST",
+      body: JSON.stringify({ target: $("owner-input").value.trim(), action, ok, fail }),
+    });
+    loadHistory();
+    if (action === "star") loadRecentStars();
+  } catch (e) { /* history is best-effort */ }
+}
+
+$("btn-run").onclick = () => runBatch("star");
+$("btn-unrun").onclick = () => runBatch("unstar");
+
+/* ---------------- recent stars & history ---------------- */
+async function loadRecentStars() {
+  const box = $("recent-stars");
+  try {
+    const data = await api("/api/recent_stars");
+    if (!data.items.length) { box.innerHTML = '<div class="empty-tip">还没有 star 过任何仓库</div>'; return; }
+    box.innerHTML = data.items.map(it => `
+      <div class="feed-item">
+        <div class="top">
+          <a href="${esc(it.url)}" target="_blank">${esc(it.full_name)}</a>
+          <span class="muted">★ ${fmt(it.stars)}</span>
+          <span class="when">${relTime(it.starred_at)}</span>
+        </div>
+        ${it.description ? `<div class="desc">${esc(it.description)}</div>` : ""}
+      </div>`).join("");
+  } catch (e) {
+    box.innerHTML = `<div class="empty-tip">${esc(e.message)}</div>`;
+  }
+}
+$("btn-refresh-stars").onclick = loadRecentStars;
+
+async function loadHistory() {
+  const box = $("history-list");
+  try {
+    const data = await api("/api/history");
+    if (!data.items.length) { box.innerHTML = '<div class="empty-tip">还没有批量操作记录</div>'; return; }
+    box.innerHTML = data.items.slice(0, 15).map(it => `
+      <div class="feed-item">
+        <div class="top">
+          <span>${it.action === "star" ? "⭐ Star" : "✗ 取消"}</span>
+          <span class="muted">${esc(it.target)}</span>
+          <span class="when">${relTime(it.time)}</span>
+        </div>
+        <div class="desc">成功 ${it.ok}${it.fail ? `，失败 ${it.fail}` : ""}</div>
+      </div>`).join("");
+  } catch (e) {
+    box.innerHTML = `<div class="empty-tip">${esc(e.message)}</div>`;
+  }
+}
 
 /* ---------------- boot ---------------- */
 refreshMe().catch(e => loginError(e.message));

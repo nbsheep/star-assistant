@@ -15,10 +15,13 @@
   - 一键导入本机已登录的 gh CLI 凭据
   - 粘贴 Personal Access Token
 - **智能地址解析**：完整主页链接（`https://github.com/xxx?tab=repositories`）或纯用户名都能识别
+- **用户画像 + 统计瓦片**：头像、bio、粉丝数、加入年份，以及公开仓库数 / 总获星 / fork 数 / 已 star / 待 star 一览
 - **仓库列表一目了然**：名称、描述、Stars 数、语言、是否 fork，以及你当前的 star 状态
-- **一键 Star**：勾选后批量 star，带逐仓库进度条和成功/失败统计
-- **灵活筛选**：跳过 fork 仓库、跳过已 star 的仓库、全选/全不选
+- **一键 Star / 一键取消 Star**：勾选后批量操作，带逐仓库进度条和成功/失败统计
+- **灵活筛选**：名称/描述搜索、按星数或名称排序、跳过 fork、跳过已 star、"勾选已star"快捷键
 - **单个切换**：每个仓库可单独 star / 取消 star
+- **Star 动态**：展示你最近 star 过的仓库和相对时间
+- **操作历史**：每次批量操作本地留痕，可随时回溯
 - **凭据安全**：Token 经 Windows DPAPI 加密后存放在本机，与当前 Windows 用户绑定
 - **网络健壮**：GitHub 直连被重置时，自动回退到本机常见代理端口（7897 / 7890 / 10809 / 1080）
 
@@ -38,7 +41,7 @@
    https://github.com/nbsheep?tab=repositories
    ```
    或直接输入用户名 `nbsheep`
-4. 点击 **获取仓库**，确认列表后点击左下角 **一键 Star 选中**，坐等进度条走完
+4. 点击 **获取仓库**，确认列表后点击左下角 **⭐ 一键 Star**，坐等进度条走完；想批量取消就勾选后点 **✗ 一键取消 Star**
 
 ## 登录方式说明
 
@@ -65,6 +68,8 @@
          ├─ /api/auth/*                   # 设备配对 / gh 导入 / PAT 登录
          ├─ /api/target?owner=xxx         # 拉取目标用户仓库 + 自己的 starred 对照
          ├─ /api/star                     # 单仓库 star / unstar
+         ├─ /api/recent_stars             # 我最近的 star 动态（star+json）
+         ├─ /api/history                  # 批量操作历史（本地 history.json）
          └─ Edge --app 独立窗口           # index.html 单页界面
 ```
 
@@ -84,7 +89,7 @@ GitHub 的 starred 列表 API 有几分钟缓存延迟，属正常现象，稍�
 面板每次 star 之间间隔 150ms，速度温和。批量 star 属于正常的公开 API 使用，但请勿短时间内对成百上千个用户狂点，尊重他人也保护自己。
 
 **Q: 想取消 star 怎么办？**
-点击仓库行右侧的"★ 已star"按钮即可单独取消。
+单个：点击仓库行右侧的"★ 已star"按钮。批量：勾选后点 **✗ 一键取消 Star**，也可用"勾选已star"快捷键选中全部已 star 的仓库再取消。
 
 ## 免责声明
 

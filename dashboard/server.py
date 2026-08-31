@@ -226,13 +226,13 @@ def github(method, path, token, body=None, timeout=25):
     return json.loads(raw) if raw.strip() else None
 
 
-def github_status(method, path, token, body=None, timeout=25):
+def github_status(method, path, token, body=None, timeout=25, accept="application/json"):
     """Like github() but never raises on HTTP status: returns (parsed|None, status)."""
     url = path if path.startswith("http") else API_BASE + path
     headers = {
         "Authorization": f"Bearer {token}",
         "X-GitHub-Api-Version": "2022-11-28",
-        "Accept": "application/json",
+        "Accept": accept,
     }
     data = None
     if body is not None:
@@ -441,11 +441,73 @@ def list_target(owner, include_forks=True):
         "owner": user.get("login", owner),
         "avatar": user.get("avatar_url", ""),
         "profile_url": user.get("html_url", f"https://github.com/{owner}"),
+        "bio": user.get("bio") or "",
+        "followers": int(user.get("followers", 0)),
+        "created_at": (user.get("created_at") or "")[:10],
         "public_repos": int(user.get("public_repos", 0)),
         "total": len(repos),
         "already": sum(1 for r in repos if r["starred"]),
+        "total_stars": sum(r["stars"] for r in repos),
         "repos": repos,
     }
+
+
+def recent_stars(limit=15):
+    """My most recently starred repos (star+json media type carries starred_at)."""
+    token = require_creds()
+    data, st = github_status(
+        "GET", f"/user/starred?per_page={limit}&page=1", token,
+        accept="application/vnd.github.star+json")
+    if st >= 400:
+        raise ApiError(f"读取 star 列表失败(HTTP {st})", 502)
+    out = []
+    for item in data or []:
+        repo = item.get("repo", {}) or {}
+        out.append({
+            "full_name": repo.get("full_name", ""),
+            "url": repo.get("html_url", ""),
+            "description": (repo.get("description") or "")[:80],
+            "stars": int(repo.get("stargazers_count", 0)),
+            "starred_at": item.get("starred_at", ""),
+        })
+    return out
+
+
+# --------------------------------------------------------------------------
+# batch-operation history, stored locally (not on GitHub)
+# --------------------------------------------------------------------------
+HISTORY_PATH = os.path.join(CRED_DIR, "history.json")
+HISTORY_MAX = 200
+
+
+def history_load():
+    try:
+        with open(HISTORY_PATH, encoding="utf-8") as f:
+            data = json.load(f)
+        return data if isinstance(data, list) else []
+    except Exception:
+        return []
+
+
+def history_append(entry):
+    items = history_load()
+    items.insert(0, entry)
+    items = items[:HISTORY_MAX]
+    os.makedirs(CRED_DIR, exist_ok=True)
+    with open(HISTORY_PATH, "w", encoding="utf-8") as f:
+        json.dump(items, f, ensure_ascii=False, indent=1)
+    return items
+
+
+def record_batch(target, action, ok, fail):
+    entry = {
+        "time": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "target": target,
+        "action": action,
+        "ok": int(ok),
+        "fail": int(fail),
+    }
+    return history_append(entry)
 
 
 def star_one(full_name, action):
@@ -520,6 +582,12 @@ class Handler(SimpleHTTPRequestHandler):
                 owner = parse_owner(unquote(qs.get("owner", [""])[0]))
                 include_forks = qs.get("forks", ["1"])[0] not in ("0", "false")
                 self._send(200, list_target(owner, include_forks))
+            elif route == "/api/recent_stars":
+                require_creds()
+                self._send(200, {"items": recent_stars()})
+            elif route == "/api/history":
+                require_creds()
+                self._send(200, {"items": history_load()})
             else:
                 super().do_GET()  # static files; '/' serves index.html
         except BrokenPipeError:
@@ -547,6 +615,16 @@ class Handler(SimpleHTTPRequestHandler):
                 body = self._read_body()
                 action = "unstar" if body.get("action") == "unstar" else "star"
                 self._send(200, star_one(body.get("repo") or "", action))
+            elif route == "/api/history":
+                require_creds()
+                body = self._read_body()
+                items = record_batch(
+                    str(body.get("target") or "")[:120],
+                    "unstar" if body.get("action") == "unstar" else "star",
+                    int(body.get("ok") or 0),
+                    int(body.get("fail") or 0),
+                )
+                self._send(200, {"items": items})
             else:
                 self._send(404, {"error": "not found"})
         except BrokenPipeError:
