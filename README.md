@@ -35,9 +35,9 @@
 2. 首次使用在弹出的窗口中登录（推荐"导入本机 gh CLI"，装了 gh 并 `gh auth login` 过的用户零输入）
 3. 在"目标用户"输入框粘贴别人的主页地址，例如：
    ```
-   https://github.com/cloud666666666?tab=repositories
+   https://github.com/nbsheep?tab=repositories
    ```
-   或直接输入用户名 `cloud666666666`
+   或直接输入用户名 `nbsheep`
 4. 点击 **获取仓库**，确认列表后点击左下角 **一键 Star 选中**，坐等进度条走完
 
 ## 登录方式说明
